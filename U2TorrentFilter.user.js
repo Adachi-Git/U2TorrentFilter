@@ -8,6 +8,7 @@
 // @match        https://u2.dmhy.org/torrents.php*
 // @grant        none
 // @require      https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js
+// @license MIT
 // ==/UserScript==
 
 (async function() {
