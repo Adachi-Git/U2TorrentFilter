@@ -13,6 +13,16 @@
 (async function() {
     'use strict';
 
+    // 匹配发布人规则
+    const uploaderSelectors = [
+        'a[class$="_Name"] bdo', // 匹配以 "_Name" 结尾的 class 属性的 <a> 元素下的 <bdo> 元素
+        'span.torrentsign b',
+        'a.faqlink',
+        '.torrentsign',
+        '.AssistantModerator_Name',
+        'i'
+    ];
+
     // 确保页面完全加载后再执行脚本
     window.addEventListener('load', async () => {
         // 初始化 localForage
@@ -98,54 +108,9 @@
                     const rowheadElements = htmlDocument.querySelectorAll('td.rowhead');
                     rowheadElements.forEach(rowheadElement => {
                         if (/发布人|發佈人|發布人/.test(rowheadElement.textContent.trim())) {
-                            const uploaderElement1 = rowheadElement.nextElementSibling.querySelector('a.VeteranUser_Name bdo');
-                            const uploaderElement2 = rowheadElement.nextElementSibling.querySelector('span.torrentsign b');
-                            const uploaderElement3 = rowheadElement.nextElementSibling.querySelector('i');
-                            const uploaderElement4 = rowheadElement.nextElementSibling.querySelector('a.Uploader_Name bdo');
-                            const uploaderElement5 = rowheadElement.nextElementSibling.querySelector('a.NexusMaster_Name bdo');
-                            const uploaderElement6 = rowheadElement.nextElementSibling.querySelector('a.InsaneUser_Name bdo');
-                            const uploaderElement7 = rowheadElement.nextElementSibling.querySelector('a.UltimateUser_Name bdo');
-                            const uploaderElement8 = rowheadElement.nextElementSibling.querySelector('a.ExtremeUser_Name bdo');
-                            const uploaderElement9 = rowheadElement.nextElementSibling.querySelector('a.PowerUser_Name bdo');
-                            const uploaderElement10 = rowheadElement.nextElementSibling.querySelector('a.CrazyUser_Name bdo');
-                            const uploaderElement11 = rowheadElement.nextElementSibling.querySelector('a.User_Name bdo');
-                            const uploaderElement12 = rowheadElement.nextElementSibling.querySelector('a.EliteUser_Name bdo');
-                            const uploaderElement13 = rowheadElement.nextElementSibling.querySelector('a.Retiree_Name bdo');
-                            const uploaderElement14 = rowheadElement.nextElementSibling.querySelector('a.Moderator_Name bdo');
-                            const uploaderElement15 = rowheadElement.nextElementSibling.querySelector('a.SysOp_Name bdo');
-
-
-
-                            if (uploaderElement1) {
-                                uploaderName = uploaderElement1.textContent.trim();
-                            } else if (uploaderElement2) {
-                                uploaderName = uploaderElement2.textContent.trim();
-                            } else if (uploaderElement3) {
-                                uploaderName = uploaderElement3.textContent.trim();
-                            } else if (uploaderElement4) {
-                                uploaderName = uploaderElement4.textContent.trim();
-                            } else if (uploaderElement5) {
-                                uploaderName = uploaderElement5.textContent.trim();
-                            } else if (uploaderElement6) {
-                                uploaderName = uploaderElement6.textContent.trim();
-                            } else if (uploaderElement7) {
-                                uploaderName = uploaderElement7.textContent.trim();
-                            } else if (uploaderElement8) {
-                                uploaderName = uploaderElement8.textContent.trim();
-                            } else if (uploaderElement9) {
-                                uploaderName = uploaderElement9.textContent.trim();
-                            } else if (uploaderElement10) {
-                                uploaderName = uploaderElement10.textContent.trim();
-                            } else if (uploaderElement11) {
-                                uploaderName = uploaderElement11.textContent.trim();
-                            } else if (uploaderElement12) {
-                                uploaderName = uploaderElement12.textContent.trim();
-                            } else if (uploaderElement13) {
-                                uploaderName = uploaderElement13.textContent.trim();
-                            } else if (uploaderElement14) {
-                                uploaderName = uploaderElement14.textContent.trim();
-                            } else if (uploaderElement15) {
-                                uploaderName = uploaderElement15.textContent.trim();
+                            const uploaderElement = rowheadElement.nextElementSibling.querySelector(uploaderSelectors.join(', '));
+                            if (uploaderElement) {
+                                uploaderName = uploaderElement.textContent.trim();
                             }
                         }
                     });
@@ -161,6 +126,7 @@
                 }
             }
         }
+
 
         // 创建下拉框，并按照首字母排序
         function createDropdown(uploaders) {
