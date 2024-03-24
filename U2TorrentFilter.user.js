@@ -2,13 +2,12 @@
 // @name         U2 Torrent Filter
 // @namespace    https://u2.dmhy.org/userdetails.php?id=59396
 // @version      0.5
-// @description  Filter torrents by uploader name and display uploader information
+// @description  Filter torrents
 // @author       Adachi
-// @match        https://u2.dmhy.org/offers.php
+// @match        https://u2.dmhy.org/offers.php*
 // @match        https://u2.dmhy.org/torrents.php*
 // @grant        none
 // @require      https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js
-// @license MIT
 // ==/UserScript==
 
 (async function() {
@@ -108,7 +107,7 @@
                     // 从包含“发布人”的行中提取发布人信息
                     const rowheadElements = htmlDocument.querySelectorAll('td.rowhead');
                     rowheadElements.forEach(rowheadElement => {
-                        if (/发布人|發佈人|發布人/.test(rowheadElement.textContent.trim())) {
+                        if (/发布人|發佈人|Uploader|Загрузил|發布人/.test(rowheadElement.textContent.trim())) {
                             const uploaderElement = rowheadElement.nextElementSibling.querySelector(uploaderSelectors.join(', '));
                             if (uploaderElement) {
                                 uploaderName = uploaderElement.textContent.trim();
