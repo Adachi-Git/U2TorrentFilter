@@ -156,48 +156,19 @@
         keywordLogicLabel.appendChild(keywordLogicCheckbox);
         keywordLogicLabel.appendChild(document.createTextNode('AND'));
 
-        // 创建输入框和按钮
-        const inputName = document.createElement('input');
-        inputName.setAttribute('type', 'text');
-        inputName.setAttribute('placeholder', 'Enter torrent name');
-
-        const modeSelect = document.createElement('select'); // 创建模式选择器
-        const modeOption1 = document.createElement('option');
-        modeOption1.textContent = 'Include'; //既与选定的上传者相关，又包含用户输入的关键词。
-        modeOption1.value = 'mode1';
-
-        const modeOption2 = document.createElement('option');
-        modeOption2.textContent = 'Exclude'; // 排除选择的上传者与关键词相关的种子，选择了特定的上传者，并输入了关键词，排除特定上传者含关键词的种子，显示特定上传者的不包含关键词的种子。不会显示其他上传者的种子。
-        modeOption2.value = 'mode2';
-
-        const modeOption3 = document.createElement('option');
-        modeOption3.textContent = 'Include Uploader Only';
-        modeOption3.value = 'mode3';
-
-        const modeOption4 = document.createElement('option');
-        modeOption4.textContent = 'Exclude Uploader Only';
-        modeOption4.value = 'mode4';
-
-        const modeOption5 = document.createElement('option');
-        modeOption5.textContent = 'Exclude Uploader and Keywords'; //不显示选定上传者的任何种子，同时也不显示包含用户输入的关键词的种子。
-        modeOption5.value = 'mode5';
-
-        modeSelect.appendChild(modeOption1);
-        modeSelect.appendChild(modeOption2);
-        modeSelect.appendChild(modeOption3);
-        modeSelect.appendChild(modeOption4);
-        modeSelect.appendChild(modeOption5);
-
-
+        // 创建按钮
         const button = document.createElement('button');
         button.textContent = 'Filter';
         button.addEventListener('click', filterTorrents);
+
+        // 创建下拉框和其他输入元素
+        const { inputName, modeSelect } = createInputAndModeSelect();
 
         // 获取所有发布人名称和相应的种子链接
         const uploadersWithLinks = await getAllUploadersWithLinks();
 
         // 创建下拉框
-        const uploaderDropdown = createDropdown(uploadersWithLinks);
+        const uploaderDropdown= createDropdown(uploadersWithLinks);
 
         // 将输入框、按钮和下拉框添加到页面中
         const container = document.createElement('div');
@@ -248,6 +219,52 @@
                     }
                 } else if (mode === 'mode2') {
                     // Mode 2
+                    torrents.forEach(torrent => {
+                        const torrentName = torrent.textContent.toLowerCase();
+
+                        // 获取种子链接的发布人名称
+                        const uploaderElement = torrent.parentElement.parentElement.querySelector('a.tooltip');
+                        const uploaderLink = uploaderElement ? uploaderElement.href : '';
+
+                        if (selectedUploader === 'ALL' || !uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
+                            // 当种子的发布者不是选定的发布者时，执行以下操作：
+                            if (!inputNameValue || !matchesKeywords(torrentName, keywords, keywordLogic)) {
+                                // 当没有填写关键词或种子名称不包含指定关键词时，显示该种子行。
+                                torrent.parentElement.parentElement.style.display = '';
+                            } else {
+                                // 当种子名称包含指定关键词时，隐藏该种子行。
+                                torrent.parentElement.parentElement.style.display = 'none';
+                            }
+                        } else {
+                            // 当种子的发布者是选定的发布者时，隐藏该种子行。
+                            torrent.parentElement.parentElement.style.display = 'none';
+                        }
+                    });
+                } else if (mode === 'mode3') {
+                    // Mode 3
+                    if (selectedUploader === 'ALL') {
+                        torrent.parentElement.parentElement.style.display = ''; // 显示全部发布人的种子行
+                    } else {
+                        if (selectedUploader !== 'ALL'
+                            && uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
+                            torrent.parentElement.parentElement.style.display = ''; // 显示用户选择的发布者的种子行
+                        } else {
+                            torrent.parentElement.parentElement.style.display = 'none'; // 隐藏其他发布者的种子行
+                        }
+                    }
+                } else if (mode === 'mode4') {
+                    // Mode 4
+                    if (selectedUploader === 'ALL') {
+                        torrent.parentElement.parentElement.style.display = 'none'; // 隐藏全部发布人的种子行
+                    } else {
+                        if (selectedUploader !== 'ALL' && uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
+                            torrent.parentElement.parentElement.style.display = 'none'; // 隐藏用户选择的发布者的种子行
+                        } else {
+                            torrent.parentElement.parentElement.style.display = ''; // 显示其他发布者的种子行
+                        }
+                    }
+                }else if (mode === 'mode5') {
+                    // Mode 5
                     if (selectedUploader === 'ALL') {
                         if (inputNameValue === '') {
                             torrent.parentElement.parentElement.style.display = 'none'; // 隐藏所有种子行
@@ -277,53 +294,92 @@
                             }
                         }
                     }
-                } else if (mode === 'mode3') {
-                    // Mode 3
+                } else if (mode === 'mode6') {
+                    // Mode 6
                     if (selectedUploader === 'ALL') {
-                        torrent.parentElement.parentElement.style.display = ''; // 显示全部发布人的种子行
-                    } else {
-                        if (selectedUploader !== 'ALL'
-                            && uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
-                            torrent.parentElement.parentElement.style.display = ''; // 显示用户选择的发布者的种子行
+                        if (inputNameValue === '') {
+                            torrent.parentElement.parentElement.style.display = 'none'; // 隐藏所有种子行
                         } else {
-                            torrent.parentElement.parentElement.style.display = 'none'; // 隐藏其他发布者的种子行
-                        }
-                    }
-                } else if (mode === 'mode4') {
-                    // Mode 4
-                    if (selectedUploader === 'ALL') {
-                        torrent.parentElement.parentElement.style.display = 'none'; // 隐藏全部发布人的种子行
-                    } else {
-                        if (selectedUploader !== 'ALL' && uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
-                            torrent.parentElement.parentElement.style.display = 'none'; // 隐藏用户选择的发布者的种子行
-                        } else {
-                            torrent.parentElement.parentElement.style.display = ''; // 显示其他发布者的种子行
-                        }
-                    }
-                }else if (mode === 'mode5') {
-                    // Mode 5
-                    torrents.forEach(torrent => {
-                        const torrentName = torrent.textContent.toLowerCase();
-
-                        // 获取种子链接的发布人名称
-                        const uploaderElement = torrent.parentElement.parentElement.querySelector('a.tooltip');
-                        const uploaderLink = uploaderElement ? uploaderElement.href : '';
-
-                        if (selectedUploader === 'ALL' || !uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
-                            // 当种子的发布者不是选定的发布者时，执行以下操作：
-                            if (!matchesKeywords(torrentName, keywords, keywordLogic)) {
-                                // 当种子名称不包含指定关键词时，显示该种子行。
-                                torrent.parentElement.parentElement.style.display = '';
+                            if (matchesKeywords(torrentName, keywords, keywordLogic)) {
+                                torrent.parentElement.parentElement.style.display = ''; // 显示符合条件的种子行
                             } else {
-                                // 当种子名称包含指定关键词时，隐藏该种子行。
-                                torrent.parentElement.parentElement.style.display = 'none';
+                                torrent.parentElement.parentElement.style.display = 'none'; // 隐藏不符合条件的种子行
+                            }
+                        }
+                    } else {
+                        if (inputNameValue === '') {
+                            if (uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
+                                torrent.parentElement.parentElement.style.display = 'none'; // 隐藏与特定发布者相关的种子行
+                            } else {
+                                torrent.parentElement.parentElement.style.display = ''; // 显示不相关的种子行
                             }
                         } else {
-                            // 当种子的发布者是选定的发布者时，隐藏该种子行。
-                            torrent.parentElement.parentElement.style.display = 'none';
+                            if (uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
+                                if (matchesKeywords(torrentName, keywords, keywordLogic)) {
+                                    torrent.parentElement.parentElement.style.display = ''; // 显示符合条件的种子行
+                                } else {
+                                    torrent.parentElement.parentElement.style.display = 'none'; // 隐藏不符合条件的种子行
+                                }
+                            } else {
+                                torrent.parentElement.parentElement.style.display = 'none'; // 隐藏其他发布者的种子行
+                            }
                         }
-                    });
+                    }
+                } else if (mode === 'mode7') {
+                    // Mode 7
+                    if (selectedUploader !== 'ALL') {
+                        torrents.forEach(torrent => {
+                            const torrentName = torrent.textContent.toLowerCase();
+
+                            // 获取种子链接的发布人名称
+                            const uploaderElement = torrent.parentElement.parentElement.querySelector('a.tooltip');
+                            const uploaderLink = uploaderElement ? uploaderElement.href : '';
+
+                            if (selectedUploader !== 'ALL' && uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
+                                if (inputNameValue === '' || !matchesKeywords(torrentName, keywords, keywordLogic)) {
+                                    // 当没有填写关键词或种子名称不包含指定关键词时，显示该种子行。
+                                    torrent.parentElement.parentElement.style.display = '';
+                                } else {
+                                    // 当种子名称包含指定关键词时，隐藏该种子行。
+                                    torrent.parentElement.parentElement.style.display = 'none';
+                                }
+                            } else {
+                                // 当种子的发布者不是选定的发布者时，隐藏该种子行。
+                                torrent.parentElement.parentElement.style.display = 'none';
+                            }
+                        });
+                    }
+                } else if (mode === 'mode8') {
+                    // Mode 8
+                    if (selectedUploader !== 'ALL') {
+                        torrents.forEach(torrent => {
+                            const torrentName = torrent.textContent.toLowerCase();
+
+                            // 获取种子链接的发布人名称
+                            const uploaderElement = torrent.parentElement.parentElement.querySelector('a.tooltip');
+                            const uploaderLink = uploaderElement ? uploaderElement.href : '';
+
+                            if (uploadersWithLinks.get(selectedUploader).includes(uploaderLink)) {
+                                // 如果种子的发布者是选定的发布者
+                                torrent.parentElement.parentElement.style.display = 'none'; // 隐藏该种子行
+                            } else {
+                                // 如果种子的发布者不是选定的发布者
+                                if (inputNameValue === '') {
+                                    // 如果没有输入文本，则显示其他上传者的种子行
+                                    torrent.parentElement.parentElement.style.display = '';
+                                } else {
+                                    // 如果填写了关键词并且种子名称包含指定关键词，显示该种子行。
+                                    if (matchesKeywords(torrentName, keywords, keywordLogic)) {
+                                        torrent.parentElement.parentElement.style.display = ''; // 显示符合条件的种子行
+                                    } else {
+                                        torrent.parentElement.parentElement.style.display = 'none'; // 隐藏不符合条件的种子行
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
+
 
             });
 
@@ -346,5 +402,39 @@
                 return keywords.every(keyword => torrentName.includes(keyword));
             }
         }
+
+        // 创建输入框和模式选择器
+        function createInputAndModeSelect() {
+            const inputName = document.createElement('input');
+            inputName.setAttribute('type', 'text');
+            inputName.setAttribute('placeholder', 'Enter torrent name');
+
+            const modeSelect = document.createElement('select');
+            const modeOptions = [
+                { text: 'Include,Include', value: 'mode1' },
+                { text: 'Include,Exclude', value: 'mode7' },
+
+                { text: 'Exclude,Exclude', value: 'mode2' },
+                { text: 'Exclude,Include', value: 'mode8' },
+
+                { text: 'Include,Ignored', value: 'mode3' },
+                { text: 'Exclude,Ignored', value: 'mode4' },
+
+                { text: 'Exclude then Exclude', value: 'mode5' },
+                { text: 'Exclude then Include', value: 'mode6' }
+            ];
+
+            modeOptions.forEach(option => {
+                const modeOption = document.createElement('option');
+                modeOption.textContent = option.text;
+                modeOption.value = option.value;
+                modeSelect.appendChild(modeOption);
+            });
+
+            return { inputName, modeSelect };
+        }
+
+        // 执行函数以应用保存的过滤条件
+        await applySavedFilterSettings();
     });
 })();
